@@ -1,4 +1,14 @@
 =======================================================
+ProceduralFairings v6.1.0 for KSP 1.8+ (2021-07-25)
+=======================================================
+Give hollow fairing base & ring parts actually hollow colliders
+Allow offsetting the fairing sides in the Editor via the base/side PAW, to give access to the parts inside
+Integrate many ProceduralFairings-ForEverything! textures (non-TU and TU, including recoloring masks)
+Provide presets and customization for fairingside shapes
+Soft-deprecate versions of parts with the fixed shape (no longer needed)
+
+
+=======================================================
 ProceduralFairings v6.0.1 for KSP 1.8+ (2021-06-26)
 =======================================================
 Hotfix: Remove PartVariants from the Thrust Plate.  If TU is installed, only the recolorable version is available.
