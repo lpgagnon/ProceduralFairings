@@ -308,7 +308,7 @@ namespace Keramzit
             numShieldedDisplay = shieldedParts.Count;
 
             if (part.GetComponent<ProceduralFairingBase>() is ProceduralFairingBase fbase)
-                fbase.onShieldingEnabled(shieldedParts);
+                fbase.OnShieldingEnabled(shieldedParts);
         }
 
         void disableShielding()
@@ -316,7 +316,7 @@ namespace Keramzit
             if (shieldedParts is List<Part>)
             {
                 if (part.GetComponent<ProceduralFairingBase>() is ProceduralFairingBase fbase)
-                    fbase.onShieldingDisabled(shieldedParts);
+                    fbase.OnShieldingDisabled(shieldedParts);
                 foreach (Part p in shieldedParts)
                     p.RemoveShield(this);
                 shieldedParts.Clear();

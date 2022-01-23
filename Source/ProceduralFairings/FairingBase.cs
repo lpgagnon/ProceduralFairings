@@ -10,11 +10,14 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace Keramzit
 {
     public class ProceduralFairingBase : PartModule, IPartCostModifier, IPartMassModifier
     {
+        protected static System.Random random;
+        protected int DefaultStall => HighLogic.LoadedSceneIsEditor && random != null ? random.Next(5) : 0;
         public const float MaxCylinderDimension = 50;
         protected const float verticalStep = 0.1f;
         public enum BaseMode { Payload, Adapter, Plate, Other }
@@ -97,6 +100,10 @@ namespace Keramzit
         [KSPField(guiActiveEditor = true, guiName = "Cost", groupName = PFUtils.PAWGroup)]
         public string costDisplay;
 
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Decoupler:", groupName = PFUtils.PAWGroup)]
+        [UI_Toggle(disabledText = "<color=red><b>Disabled</b></color>", enabledText = "Enabled")]
+        public bool decouplerEnabled = true;
+
         [KSPField(isPersistant = true, guiName = "Decouple When Fairing Gone:", groupName = PFUtils.PAWGroup, groupDisplayName = PFUtils.PAWName)]
         [UI_Toggle(disabledText = "No", enabledText = "Yes")]
         public bool autoDecoupleTopNode;
@@ -111,14 +118,14 @@ namespace Keramzit
         [KSPField(guiActiveEditor = true, guiName = "Fairing", groupName = PFUtils.PAWGroup)]
         public bool openFairing = false;
 
-        float fairingBaseMass = 0;
+        protected float fairingBaseMass = 0;
 
         public bool needShapeUpdate = true;
         private LineRenderer line;
         private TextMeshPro decouplerHint;
         private TextMeshPro nonDecouplerHint;
-        readonly List<LineRenderer> outline = new List<LineRenderer>();
-        readonly List<ConfigurableJoint> joints = new List<ConfigurableJoint>();
+        private readonly List<LineRenderer> outline = new List<LineRenderer>();
+        private readonly List<ConfigurableJoint> joints = new List<ConfigurableJoint>();
         public ModuleDecouple Decoupler;
         public Vector3 EditorOpenOffset => new Vector3(OffsetAmount, 0, 0);
         private float OffsetAmount => Mathf.Max(minOffset, Mathf.Max(baseSize, topSize) / 2);
@@ -131,7 +138,6 @@ namespace Keramzit
         float lastTopSize = -1000;
         float lastHeight = -1000;
         float lastExtraHt = -1000;
-        bool lastDecouplerStaged = false;
 
         [KSPField] public bool requestLegacyLoad;
 
@@ -149,7 +155,7 @@ namespace Keramzit
         public float GetModuleMass(float defmass, ModifierStagingSituation sit) => ApplyDecouplerMassModifier(fairingBaseMass) - defmass;
         private float ApplyDecouplerCostModifier(float baseCost) => DecouplerEnabled ? (baseCost * decouplerCostMult) + decouplerCostBase : baseCost;
         private float ApplyDecouplerMassModifier(float baseMass) => DecouplerEnabled ? (baseMass * decouplerMassMult) + decouplerMassBase : baseMass;
-        private bool DecouplerEnabled => part.FindModuleImplementing<ModuleDecouple>() is ModuleDecouple d && d.stagingEnabled;
+        private bool DecouplerEnabled => (Decoupler ??= part.FindModuleImplementing<ModuleDecouple>()) && decouplerEnabled;
         public override string GetInfo() => "Attach side fairings and they will be shaped for your attached payload.\nRemember to enable the decoupler if you need one.";
 
         #region KSP Common Callbacks
@@ -164,6 +170,7 @@ namespace Keramzit
         public override void OnAwake()
         {
             base.OnAwake();
+            random ??= new System.Random();
 
             if (HighLogic.LoadedSceneIsEditor)
             {
@@ -181,7 +188,7 @@ namespace Keramzit
 
             if (!HighLogic.LoadedSceneIsEditor && !HighLogic.LoadedSceneIsFlight) return;
 
-            ProceduralTools.DragCubeTool.UpdateDragCubes(part);
+            ProceduralTools.DragCubeTool.UpdateDragCubes(part, stall: DefaultStall);
             if (HighLogic.LoadedSceneIsEditor)
             {
                 ConfigureTechLimits();
@@ -207,11 +214,11 @@ namespace Keramzit
             {
                 GameEvents.onVesselWasModified.Add(OnVesselModified);
             }
+            OnDecouplerEnabledChanged(Fields[nameof(decouplerEnabled)], decouplerEnabled);
             lastBaseSize = baseSize;
             lastExtraHt = extraHeight;
             lastTopSize = topSize;
             lastHeight = height;
-            lastDecouplerStaged = (Decoupler && Decoupler.staged);
         }
 
         public override void OnStartFinished(StartState state) 
@@ -270,16 +277,17 @@ namespace Keramzit
 
         private void OnEditorShipModified(ShipConstruct ship)
         {
-            needShapeUpdate = true;
+            if (Mode == BaseMode.Payload)
+                needShapeUpdate = true;
             if (Mode == BaseMode.Adapter || Mode == BaseMode.Payload)
                 StartCoroutine(DisplayFairingOutline());
         }
 
         public void OnPartPack() => RemoveJoints();
 
-        public void onShieldingDisabled(List<Part> shieldedParts) => RemoveJoints();
+        public void OnShieldingDisabled(List<Part> shieldedParts) => RemoveJoints();
 
-        public void onShieldingEnabled(List<Part> shieldedParts)
+        public void OnShieldingEnabled(List<Part> shieldedParts)
         {
             if (HighLogic.LoadedSceneIsFlight && autoStrutSides)
                 StartCoroutine(CreateAutoStruts());
@@ -289,20 +297,26 @@ namespace Keramzit
         {
             // On loading any craft, the sideFairing knows its shape already.
             // Thus only need to do this when our attachment state will change.
-            needShapeUpdate = HighLogic.LoadedSceneIsEditor;
+            needShapeUpdate = HighLogic.LoadedSceneIsEditor && Mode == BaseMode.Payload;
 
             if (action.host == part || action.target == part)
+            {
+                needShapeUpdate = true;
                 ToggleNodeHints(false);
+            }
         }
 
         void OnPartRemove(GameEvents.HostTargetAction<Part, Part> action)
         {
-            needShapeUpdate = HighLogic.LoadedSceneIsEditor;
+            needShapeUpdate = HighLogic.LoadedSceneIsEditor && Mode == BaseMode.Payload;
             if (Mode == BaseMode.Adapter || Mode == BaseMode.Payload)
                 StartCoroutine(DisplayFairingOutline());
 
             if (action.host == part || action.target == part)
+            {
+                needShapeUpdate = true;
                 ToggleNodeHints(true);
+            }
         }
 
         void OnVesselModified(Vessel v)
@@ -355,6 +369,9 @@ namespace Keramzit
             
             Fields[nameof(openFairing)].uiControlEditor.onFieldChanged += OnToggleOpen;
             Fields[nameof(openFairing)].uiControlEditor.onSymmetryFieldChanged += OnToggleOpen;
+
+            Fields[nameof(decouplerEnabled)].uiControlEditor.onFieldChanged += OnDecouplerEnabledChanged;
+            Fields[nameof(decouplerEnabled)].uiControlEditor.onSymmetryFieldChanged += OnDecouplerEnabledChanged;
         }
 
         void SetUIFieldVisibility()
@@ -365,12 +382,13 @@ namespace Keramzit
             Fields[nameof(topSize)].guiActiveEditor = Mode == BaseMode.Adapter;
             Fields[nameof(height)].guiActiveEditor = Mode == BaseMode.Adapter;
             Fields[nameof(extraHeight)].guiActiveEditor = Mode == BaseMode.Adapter;
-            Fields[nameof(autoDecoupleTopNode)].guiActive = Mode == BaseMode.Adapter;
-            Fields[nameof(autoDecoupleTopNode)].guiActiveEditor = Mode == BaseMode.Adapter;
+            Fields[nameof(autoDecoupleTopNode)].guiActive = DecouplerEnabled && Mode == BaseMode.Adapter;
+            Fields[nameof(autoDecoupleTopNode)].guiActiveEditor = DecouplerEnabled && Mode == BaseMode.Adapter;
             Fields[nameof(showInterstageNodes)].guiActiveEditor = part.FindAttachNodes("interstage") != null;
             Fields[nameof(extraRadius)].guiActiveEditor = Mode == BaseMode.Adapter || Mode == BaseMode.Payload;
             Fields[nameof(autoStrutSides)].guiActiveEditor = Mode == BaseMode.Adapter || Mode == BaseMode.Payload;
             Fields[nameof(autoShape)].guiActiveEditor = Mode == BaseMode.Adapter || Mode == BaseMode.Payload;
+            Fields[nameof(decouplerEnabled)].guiActiveEditor = Decoupler != null;
         }
 
         private void SetUIFieldLimits()
@@ -412,6 +430,24 @@ namespace Keramzit
             if (extraHeight != lastExtraHt)
                 UpdateShape(true);
             lastExtraHt = extraHeight;
+        }
+
+        public void OnDecouplerEnabledChanged(BaseField f, object obj)
+        {
+            UpdateMassAndCostDisplay();
+            if (Decoupler)
+            {
+                Decoupler.stagingEnabled = decouplerEnabled;
+                Decoupler.Actions["DecoupleAction"].active = decouplerEnabled;
+                Decoupler.Events["Decouple"].active = decouplerEnabled;
+                Decoupler.Events["Decouple"].guiActive = decouplerEnabled;
+                Decoupler.Events["ToggleStaging"].active = decouplerEnabled;
+                Decoupler.Events["ToggleStaging"].guiActive = decouplerEnabled;
+                Decoupler.Events["ToggleStaging"].guiActiveEditor = decouplerEnabled;
+                Fields[nameof(autoDecoupleTopNode)].guiActive = decouplerEnabled && Mode == BaseMode.Adapter;
+                Fields[nameof(autoDecoupleTopNode)].guiActiveEditor = decouplerEnabled && Mode == BaseMode.Adapter;
+                MonoUtilities.RefreshPartContextWindow(part);
+            }
         }
 
         void OnChangeAutoshapeUI(BaseField bf, object obj)
@@ -470,11 +506,6 @@ namespace Keramzit
                     Fields[nameof(height)].uiControlEditor.onFieldChanged.Invoke(Fields[nameof(height)], lastHeight);
                 if (extraHeight != lastExtraHt)
                     Fields[nameof(extraHeight)].uiControlEditor.onFieldChanged.Invoke(Fields[nameof(extraHeight)], lastExtraHt);
-                if (Decoupler && lastDecouplerStaged != Decoupler.stagingEnabled)
-                {
-                    UpdateMassAndCostDisplay();
-                    lastDecouplerStaged = Decoupler.stagingEnabled;
-                }
             }
         }
 
@@ -484,13 +515,21 @@ namespace Keramzit
 
         public void UpdateShape(bool pushAttachments)
         {
+            Profiler.BeginSample("PF.UpdateShape");
+
+            Profiler.BeginSample("PF.UpdateShape.Setup");
             SetUIFieldLimits();
             UpdatePartProperties();
             UpdateNodes(pushAttachments);
+            Profiler.EndSample();
+            Profiler.BeginSample("PF.UpdateShape.RecalcShape");
             if (!HighLogic.LoadedSceneIsFlight)
-                recalcShape();
-            ProceduralTools.DragCubeTool.UpdateDragCubes(part);
+                RecalcShape();
+            Profiler.EndSample();
+            ProceduralTools.DragCubeTool.UpdateDragCubes(part, stall: DefaultStall);
             UpdateFairingSideDragCubes();
+
+            Profiler.EndSample();
         }
 
         public List<ProceduralFairingSide> GetFairingSides(Part p) =>
@@ -500,8 +539,8 @@ namespace Keramzit
 
         public void UpdateFairingSideDragCubes()
         {
-            foreach (var p in GetFairingSides(part))
-                ProceduralTools.DragCubeTool.UpdateDragCubes(p.part);
+            if (GetFairingSides(part).FirstOrDefault() is ProceduralFairingSide p)
+                ProceduralTools.DragCubeTool.UpdateDragCubes(p.part, symmetry: true);
         }
         
         public void UpdateOpen()
@@ -643,7 +682,7 @@ namespace Keramzit
         {
             ProceduralFairingAdapter adapter = part.FindModuleImplementing<ProceduralFairingAdapter>();
             mode = adapter ? Enum.GetName(typeof(BaseMode), BaseMode.Adapter) : Enum.GetName(typeof(BaseMode), BaseMode.Payload);
-            Debug.Log($"[PF] LegacyLoad() for {part}, Mode: {Mode}, skipping");
+            Debug.LogError($"[ProceduralFairings] {part} has not been updated for PF v6!  Trying Mode: {Mode}, but unexpected results are likely!");
         }
 
         public System.Collections.IEnumerator HandleAutomaticDecoupling()
@@ -653,19 +692,12 @@ namespace Keramzit
             if (!HighLogic.LoadedSceneIsFlight) yield break;
             yield return new WaitForFixedUpdate();
 
-            if (TopNodePartPresent && autoDecoupleTopNode && !FairingPresent)
+            if (DecouplerEnabled && TopNodePartPresent && autoDecoupleTopNode && !FairingPresent)
             {
-                if (part.FindModuleImplementing<ModuleDecouple>() is ModuleDecouple item)
-                {
-                    RemoveTopPartJoints();
-                    item.Decouple();
-                }
-                else
-                {
-                    Debug.LogError($"[PF]: Cannot decouple from top part! {this}");
-                }
+                RemoveTopPartJoints();
+                Decoupler.Decouple();
             }
-            Fields[nameof(autoDecoupleTopNode)].guiActive = Mode == BaseMode.Adapter && TopNodePartPresent;
+            Fields[nameof(autoDecoupleTopNode)].guiActive = DecouplerEnabled && Mode == BaseMode.Adapter && TopNodePartPresent;
         }
 
         #region Node / Attached Part Utilities
@@ -688,30 +720,8 @@ namespace Keramzit
                 return false;
             }
         }
-        private Part FindTopBasePart()
-        {
-            Part top = null;
-            if (Mode == BaseMode.Adapter)
-            {
-                top = GetTopPart();
-            }
-            else if (Mode == BaseMode.Payload)
-            {
-                var scan = ScanPayload();
-                if (scan.targets.Count > 0)
-                    top = scan.targets[0];
-            }
-            return top;
-        }
-
-        private bool HasTopOrSideNode()
-        {
-            if (Mode == BaseMode.Payload && ScanPayload() is PayloadScan scan && scan.targets.Count > 0)
-                return true;
-            if (HasNodeComponent<ProceduralFairingSide>(part.FindAttachNodes("connect")) is AttachNode)
-                return true;
-            return false;
-        }
+        private Part FindTopBasePart() => Mode == BaseMode.Adapter ? GetTopPart() : null;
+        private bool HasTopOrSideNode() => HasNodeComponent<ProceduralFairingSide>(part.FindAttachNodes("connect")) is AttachNode;
 
         void SetNodeVisibility(AttachNode node, bool show) => node.position.x = show ? 0 : 10000;
 
@@ -893,7 +903,7 @@ namespace Keramzit
             return hint;
         }
 
-        static public Vector3 [] buildFairingShape (float baseRad, float maxRad, float cylStart, float cylEnd, float noseHeightRatio, Vector4 baseConeShape, Vector4 noseConeShape, int baseConeSegments, int noseConeSegments, Vector4 vertMapping, float mappingScaleY)
+        public static Vector3[] buildFairingShape(float baseRad, float maxRad, float cylStart, float cylEnd, float noseHeightRatio, Vector4 baseConeShape, Vector4 noseConeShape, int baseConeSegments, int noseConeSegments, Vector4 vertMapping, float mappingScaleY)
         {
             float baseConeRad = maxRad - baseRad;
             float tip = maxRad * noseHeightRatio;
@@ -938,7 +948,7 @@ namespace Keramzit
             return shape;
         }
 
-        static public Vector3 [] buildInlineFairingShape (float baseRad, float maxRad, float topRad, float cylStart, float cylEnd, float top, Vector4 baseConeShape, int baseConeSegments, Vector4 vertMapping, float mappingScaleY)
+        public static Vector3[] buildInlineFairingShape(float baseRad, float maxRad, float topRad, float cylStart, float cylEnd, float top, Vector4 baseConeShape, int baseConeSegments, Vector4 vertMapping, float mappingScaleY)
         {
             float baseConeRad = maxRad - baseRad;
             float topConeRad = maxRad - topRad;
@@ -1026,7 +1036,7 @@ namespace Keramzit
             {
                 scan.ofs = node.position.y;
                 if (node.attachedPart != null)
-                    scan.addPart (node.attachedPart, part);
+                    scan.AddPart(node.attachedPart, part);
             }
 
             if (part.FindAttachNodes("interstage") is AttachNode[] nodes)
@@ -1034,7 +1044,7 @@ namespace Keramzit
                 foreach (AttachNode n in nodes)
                 {
                     if (n.attachedPart != null)
-                        scan.addPart (n.attachedPart, part);
+                        scan.AddPart(n.attachedPart, part);
                 }
             }
             for (int i = 0; i < scan.payload.Count; ++i)
@@ -1042,10 +1052,10 @@ namespace Keramzit
                 var cp = scan.payload[i];
 
                 //  Add any connected payload parts.
-                scan.addPart (cp.parent, cp);
+                scan.AddPart(cp.parent, cp);
                 foreach (Part child in cp.children)
                 {
-                    scan.addPart(child, cp);
+                    scan.AddPart(child, cp);
                 }
 
                 //  Scan for the part colliders.
@@ -1053,7 +1063,7 @@ namespace Keramzit
                 {
                     //  Skip ladders etc...
                     if (coll.tag.Equals("Untagged"))
-                        scan.addPayload(coll);
+                        scan.AddPayload(coll);
                 }
             }
 
@@ -1096,34 +1106,21 @@ namespace Keramzit
         }
 
         public bool forcePartPosition = true;
-        public void recalcShape ()
+        public void RecalcShape ()
         {
             if (Mode != BaseMode.Payload && Mode != BaseMode.Adapter)
                 return;
+            Profiler.BeginSample("PF.RecalcShape.ScanPayload");
             var scan = ScanPayload();
+            Profiler.EndSample();
 
             //  Check for reversed bases (inline fairings).
 
-            float topY = 0;
-            float topRad = 0;
-
             AttachNode topSideNode = null;
-            bool isInline = false;
+            bool isInline = Mode == BaseMode.Adapter;
+            float topY = isInline ? Mathf.Max(scan.ofs, height + extraHeight) : 0;
+            float topRad = isInline ? (topSize / 2) - CalcSideThickness() : 0;
 
-            if (Mode == BaseMode.Adapter)
-            {
-                isInline = true;
-                topY = Mathf.Max(scan.ofs, height + extraHeight);
-                topRad = (topSize / 2) - CalcSideThickness();
-            }
-            else if (scan.targets.Count > 0)
-            {
-                isInline = true;
-                var topBase = scan.targets [0].GetComponent<ProceduralFairingBase>();
-                topY = Mathf.Max(scan.ofs, scan.w2l.MultiplyPoint3x4(topBase.part.transform.position).y);
-                topSideNode = HasNodeComponent<ProceduralFairingSide>(topBase.part.FindAttachNodes ("connect"));
-                topRad = (topBase.baseSize / 2) - CalcSideThickness();
-            }
 
             //  No payload case.
 
@@ -1133,7 +1130,11 @@ namespace Keramzit
             }
 
             //  Fill profile outline (for debugging).
+            Profiler.BeginSample("PF.RecalcShape.FillProfileOutline");
             FillProfileOutline(scan);
+            Profiler.EndSample();
+
+            Profiler.BeginSample("PF.RecalcShape.FitShape");
 
             //  Check for attached side parts.
             var attached = part.FindAttachNodes("connect") ?? new AttachNode[1];
@@ -1295,6 +1296,7 @@ namespace Keramzit
             cylStart = Math.Min(cylStart, cylEnd);
 
             //  Build the fairing shape line.
+            Profiler.EndSample();
 
             Vector3[] shape = isInline ? buildInlineFairingShape(baseRad, maxRad, topRad, cylStart, cylEnd, topY, baseConeShape, baseConeSegments, vertMapping, mappingScale.y) :
                                         buildFairingShape(baseRad, maxRad, cylStart, cylEnd, noseHeightRatio, baseConeShape, noseConeShape, baseConeSegments, noseConeSegments, vertMapping, mappingScale.y);
@@ -1305,9 +1307,9 @@ namespace Keramzit
             //  Rebuild the side parts.
 
             int numSegs = Math.Max(2, circleSegments / numSideParts);
-
             foreach (AttachNode sn in attached)
             {
+                Profiler.BeginSample("PF.RecalcShape.BuildMesh");
                 if (sn.attachedPart is Part sp &&
                     sp.GetComponent<ProceduralFairingSide>() is ProceduralFairingSide sf2)
                 {
@@ -1368,13 +1370,13 @@ namespace Keramzit
                         sf2.noseHeightRatio = noseHeightRatio;
                         sf2.density = density;
 
-                        sf2.rebuildMesh();
+                        sf2.rebuildMesh(updateDragCubes: false);
                         var currentOffset = sf2.meshPos + (openFairing ? EditorOpenOffset : Vector3.zero);
                         sf2.SetOffset(currentOffset);
                     }
                 }
+                Profiler.EndSample();
             }
-
             if (part.GetComponent<KzFairingBaseShielding>() is KzFairingBaseShielding shielding)
                 shielding.reset ();
         }
