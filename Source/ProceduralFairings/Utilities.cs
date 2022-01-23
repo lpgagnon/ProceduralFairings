@@ -4,8 +4,6 @@
 //  Licensed under CC-BY-4.0 terms: https://creativecommons.org/licenses/by/4.0/legalcode
 //  ==================================================
 
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace Keramzit
@@ -121,26 +119,5 @@ namespace Keramzit
 
         public static string formatMass(float mass) => (mass < 0.01) ? $"{mass * 1e3:N3}kg" : $"{mass:N3}t";
         public static string formatCost(float cost) => $"{cost:N0}";
-
-        public static void enableRenderer (Transform t, bool e)
-        {
-            if (t is Transform && t.GetComponent<Renderer>() is Renderer r)
-                r.enabled = e;
-        }
-
-        public static List<Part> getAllChildrenRecursive (this Part rootPart, bool root)
-        {
-            var children = new List<Part>();
-
-            if (!root)
-                children.Add (rootPart);
-
-            foreach (Part child in rootPart.children)
-            {
-                children.AddRange(child.getAllChildrenRecursive(false));
-            }
-
-            return children;
-        }
     }
 }
