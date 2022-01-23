@@ -331,7 +331,7 @@ namespace Keramzit
             int nsym = part.symmetryCounterparts.Count;
             string s = (nsym == 0) ? string.Empty : (nsym == 1) ? " (both)" : $" (all {nsym + 1})";
             float perPartCost = part.partInfo.cost + GetModuleCost(part.partInfo.cost, ModifierStagingSituation.CURRENT);
-            massDisplay = PFUtils.formatMass(ApplyDecouplerMassModifier(fairingMass) * (nsym + 1)) + s; 
+            massDisplay = PFUtils.FormatMass(ApplyDecouplerMassModifier(fairingMass) * (nsym + 1)) + s; 
             costDisplay = $"{perPartCost * (nsym + 1):N0}{s}";
         }
 
@@ -419,14 +419,14 @@ namespace Keramzit
                     Vector3 size = new Vector3(collWidth, (pNext - p).magnitude, sideThickness * 0.1f);
                     // Skip the collider if adjacent points are too close.
                     if (size.y > 0.001)
-                        BuildColliderRow(p, cp, n, size, numColliders, startAngle, anglePerCollider, $"{i}");
+                        BuildColliderRow(p, cp, n, size, numColliders, startAngle, anglePerCollider);
                 }
                 Profiler.EndSample();
             }
             colliderPool.ReleaseCacheToPool();
         }
 
-        private void BuildColliderRow(Vector3 p, Vector3 cp, Vector3 normal, Vector3 size, int numColliders, float startAngle, float anglePerCollider, string name)
+        private void BuildColliderRow(Vector3 p, Vector3 cp, Vector3 normal, Vector3 size, int numColliders, float startAngle, float anglePerCollider)
         {
             for (int j = 0; j < numColliders; j++)
             {

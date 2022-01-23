@@ -572,8 +572,8 @@ namespace Keramzit
         {
             float baseDiameterAdj = baseSize - (2 * CalcSideThickness());
             fairingBaseMass = (((((specificMass.x * baseDiameterAdj) + specificMass.y) * baseDiameterAdj) + specificMass.z) * baseDiameterAdj) + specificMass.w;
-            massDisplay = PFUtils.formatMass(ApplyDecouplerMassModifier(fairingBaseMass));
-            costDisplay = PFUtils.formatCost(part.partInfo.cost + GetModuleCost(part.partInfo.cost, ModifierStagingSituation.CURRENT));
+            massDisplay = PFUtils.FormatMass(ApplyDecouplerMassModifier(fairingBaseMass));
+            costDisplay = PFUtils.FormatCost(part.partInfo.cost + GetModuleCost(part.partInfo.cost, ModifierStagingSituation.CURRENT));
         }
 
         // Sub-functions of UpdateShape()

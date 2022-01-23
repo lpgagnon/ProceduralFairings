@@ -49,10 +49,10 @@ namespace Keramzit
             }
         }
 
-        public static void updateAttachedPartPos (AttachNode node, Part part, Vector3 oldPosWorld)
+        public static void UpdateAttachedPartPos(AttachNode node, Part part, Vector3 oldPosWorld)
         {
             if (node is AttachNode && part is Part && 
-                node.attachedPart is Part ap && ap.FindAttachNodeByPart(part) is AttachNode an)
+                node.attachedPart is Part ap && ap.FindAttachNodeByPart(part) is AttachNode)
             {
                 if (HighLogic.LoadedSceneIsFlight)
                     Debug.LogWarning($"[PF] PF Utilities Attempting to Update a Part Position during Flight Scene!\n{StackTraceUtility.ExtractStackTrace()}");
@@ -81,7 +81,7 @@ namespace Keramzit
                 node.size = size;
 
                 if (pushAttachments)
-                    PFUtils.updateAttachedPartPos(node, part, oldPosWorld);
+                    PFUtils.UpdateAttachedPartPos(node, part, oldPosWorld);
 
                 if (node.attachedPart is Part)
                 {
@@ -117,7 +117,7 @@ namespace Keramzit
             }
         }
 
-        public static string formatMass(float mass) => (mass < 0.01) ? $"{mass * 1e3:N3}kg" : $"{mass:N3}t";
-        public static string formatCost(float cost) => $"{cost:N0}";
+        public static string FormatMass(float mass) => (mass < 0.01) ? $"{mass * 1e3:N3}kg" : $"{mass:N3}t";
+        public static string FormatCost(float cost) => $"{cost:N0}";
     }
 }
