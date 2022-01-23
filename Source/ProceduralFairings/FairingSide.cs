@@ -10,11 +10,13 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 namespace Keramzit
 {
     public class ProceduralFairingSide : PartModule, IPartCostModifier, IPartMassModifier
     {
+        internal ColliderPool colliderPool;
         [KSPField] public float minBaseConeAngle = 20;
         [KSPField] public float colliderShaveAngle = 5;
         [KSPField] public Vector4 baseConeShape = new Vector4(0, 0, 0, 0);
@@ -114,7 +116,7 @@ namespace Keramzit
         [KSPField] public float decouplerCostMult = 1;              // Mult to costPerTonne when decoupler is enabled
         [KSPField] public float decouplerCostBase = 0;              // Flat additional cost when decoupler is enabled
         [KSPField] public float decouplerMassMult = 1;              // Mass multiplier
-        [KSPField] public float decouplerMassBase = 0;              // Flat additional mass (0.001 = 1kg)
+        [KSPField] public float decouplerMassBase = 0.0001f;        // Flat additional mass (0.001 = 1kg)
 
         [KSPField(guiActiveEditor = true, guiName = "Mass", groupName = PFUtils.PAWGroup)]
         public string massDisplay;
@@ -167,6 +169,7 @@ namespace Keramzit
 
         public override void OnStart(StartState state)
         {
+            colliderPool = new ColliderPool(part.FindModelComponent<MeshFilter>("model"));
             if (AllPresets.Count == 0)
                 LoadPresets(AllPresets);
             shapePreset = AllPresets.Keys.FirstOrDefault() ?? "Invalid";
@@ -182,6 +185,8 @@ namespace Keramzit
             SetUICallbacks();
             SetUIFieldVisibility();
         }
+
+        public void OnDestroy() => colliderPool?.Dispose();
 
         private void OnPartEditorAttach()
         {
@@ -326,8 +331,8 @@ namespace Keramzit
             int nsym = part.symmetryCounterparts.Count;
             string s = (nsym == 0) ? string.Empty : (nsym == 1) ? " (both)" : $" (all {nsym + 1})";
             float perPartCost = part.partInfo.cost + GetModuleCost(part.partInfo.cost, ModifierStagingSituation.CURRENT);
-            massDisplay = PFUtils.formatMass(ApplyDecouplerMassModifier(fairingMass) * (nsym + 1)) + s;
-            costDisplay = PFUtils.formatCost(perPartCost * (nsym + 1)) + s;
+            massDisplay = PFUtils.formatMass(ApplyDecouplerMassModifier(fairingMass) * (nsym + 1)) + s; 
+            costDisplay = $"{perPartCost * (nsym + 1):N0}{s}";
         }
 
 
@@ -339,18 +344,20 @@ namespace Keramzit
         // presumably this describes curvature somehow
         private void RebuildColliders(Vector3[] shape, Vector3[] dirs)
         {
+            Profiler.BeginSample("PF.RebuildColliders.CacheCurrentColliders");
+            //  Remove any old colliders.
+            foreach (Collider c in part.FindModelComponents<Collider>())
+                colliderPool.Release(c);
+            Profiler.EndSample();
             if (part.FindModelComponent<MeshFilter>("model") is MeshFilter mf)
             {
-                //  Remove any old colliders.
-                foreach (Collider c in part.FindModelComponents<Collider>())
-                    Destroy(c.gameObject);
-
                 float anglePerPart = Mathf.Max((360f / numSideParts) - colliderShaveAngle, 1);
                 int numColliders = dirs.Length;
                 float anglePerCollider = anglePerPart / numColliders;
                 float startAngle = (-anglePerPart / 2) + (anglePerCollider / 2);
                 //  Add the new colliders.
                 {
+                    Profiler.BeginSample("PF.RebuildColliders.NoseCollider");
                     //  Nose collider.
                     GameObject obj = new GameObject("nose_collider");
                     SphereCollider coll = obj.AddComponent<SphereCollider>();
@@ -365,8 +372,10 @@ namespace Keramzit
                                                     new Vector3(r, cylEnd + tip - r * 1.2f, 0);
                     coll.center = Vector3.zero;
                     coll.radius = r;
+                    Profiler.EndSample();
                 }
 
+                Profiler.BeginSample("PF.RebuildColliders.ComputeNormals");
                 // build list of normals from shape[], the list of points on the inside surface
                 Vector3[] normals = new Vector3[shape.Length];
                 for (int i = 0; i < shape.Length; i++)
@@ -381,6 +390,8 @@ namespace Keramzit
                     norm.Set(norm.y, -norm.x, 0);
                     normals[i] = norm.normalized;
                 }
+                Profiler.EndSample();
+                Profiler.BeginSample("PF.RebuildColliders.SetupColliderRow");
                 for (int i = 0; i < shape.Length - 1; i++)
                 {
                     // p.x, p.y is a point on the 2D shape projection.  p.z == ??
@@ -408,21 +419,22 @@ namespace Keramzit
                     Vector3 size = new Vector3(collWidth, (pNext - p).magnitude, sideThickness * 0.1f);
                     // Skip the collider if adjacent points are too close.
                     if (size.y > 0.001)
-                        BuildColliderRow(mf.transform, p, cp, n, size, numColliders, startAngle, anglePerCollider, $"{i}");
+                        BuildColliderRow(p, cp, n, size, numColliders, startAngle, anglePerCollider, $"{i}");
                 }
+                Profiler.EndSample();
             }
+            colliderPool.ReleaseCacheToPool();
         }
 
-        private void BuildColliderRow(Transform parent, Vector3 p, Vector3 cp, Vector3 normal, Vector3 size, int numColliders, float startAngle, float anglePerCollider, string name)
+        private void BuildColliderRow(Vector3 p, Vector3 cp, Vector3 normal, Vector3 size, int numColliders, float startAngle, float anglePerCollider, string name)
         {
             for (int j = 0; j < numColliders; j++)
             {
+                Profiler.BeginSample("BuildColliderSingle");
                 float rotAngle = startAngle + (j * anglePerCollider);
                 Quaternion RotY = Quaternion.Euler(0, -rotAngle, 0);
 
-                GameObject obj = new GameObject($"collider_{name}_{j}");
-                BoxCollider coll = obj.AddComponent<BoxCollider>();
-                coll.transform.parent = parent;
+                BoxCollider coll = colliderPool.Acquire();
 
                 Vector3 projectedP = new Vector3(Mathf.Cos(rotAngle * Mathf.Deg2Rad) * p.x,
                                                             p.y,
@@ -436,6 +448,7 @@ namespace Keramzit
                 coll.transform.localRotation = Quaternion.LookRotation(RotY * normal, (projectedCP - projectedP).normalized);
                 coll.center = Vector3.zero;
                 coll.size = size;
+                Profiler.EndSample();
             }
         }
 
@@ -448,7 +461,7 @@ namespace Keramzit
             part.breakingTorque = totalMass * specificBreakingTorque;
         }
 
-        public void rebuildMesh ()
+        public void rebuildMesh(bool updateDragCubes = true)
         {
             var mf = part.FindModelComponent<MeshFilter>("model");
             if (!mf)
@@ -463,6 +476,8 @@ namespace Keramzit
                 Debug.LogError ("[PF]: No mesh in side fairing model!", part);
                 return;
             }
+            Profiler.BeginSample("PF.FairingSide.RebuildMesh");
+            Profiler.BeginSample("PF.FairingSide.RebuildMesh.BuildShape");
 
             mf.transform.localPosition = meshPos;
             mf.transform.localRotation = meshRot;
@@ -477,7 +492,7 @@ namespace Keramzit
             Vector3[] shape = inlineHeight <= 0 ?
                                 ProceduralFairingBase.buildFairingShape (baseRad, maxRad, cylStart, cylEnd, noseHeightRatio, baseConeShape, noseConeShape, (int) baseConeSegments, (int) noseConeSegments, vertMapping, mappingScale.y) :
                                 ProceduralFairingBase.buildInlineFairingShape (baseRad, maxRad, topRad, cylStart, cylEnd, inlineHeight, baseConeShape, (int) baseConeSegments, vertMapping, mappingScale.y);
-
+            
             //  Set up parameters.
 
             var dirs = new Vector3 [numSegs + 1];
@@ -533,13 +548,17 @@ namespace Keramzit
 
             var p = shape [shape.Length - 1];
             float topY = p.y, topV = p.z;
+            Profiler.EndSample();
+
+            Profiler.BeginSample("PF.FairingSide.RebuildMesh.Area");
 
             //  Compute the area.
             double area = 0;
             for (int i = 1; i < shape.Length; ++i)
             {
-                area += (shape [i - 1].x + shape [i].x) * (shape [i].y - shape [i - 1].y) * Mathf.PI / numSideParts;
+                area += (shape [i - 1].x + shape [i].x) * (shape [i].y - shape [i - 1].y);
             }
+            area *= Mathf.PI / numSideParts;
 
             UpdatePartParameters(area);
             UpdateMassAndCostDisplay();
@@ -549,12 +568,16 @@ namespace Keramzit
             Vector3 offset = new Vector3(maxRad * (1 + x) / 2, topY * 0.5f, 0);
             part.CoMOffset = part.transform.InverseTransformPoint(mf.transform.TransformPoint(offset));
             part.CoLOffset = part.CoMOffset;
+            Profiler.EndSample();
 
+            Profiler.BeginSample("PF.FairingSide.RebuildMesh.Colliders");
             RebuildColliders(shape, dirs);
+            Profiler.EndSample();
 
             //  Build the fairing mesh.
 
             m.Clear ();
+            Profiler.BeginSample("PF.FairingSide.RebuildMesh.BuildNew");
 
             var verts = new Vector3 [totalVerts];
             var uv = new Vector2 [totalVerts];
@@ -873,7 +896,11 @@ namespace Keramzit
             }
 
             m.triangles = tri;
-            ProceduralTools.DragCubeTool.UpdateDragCubes(part);
+            if (updateDragCubes)
+                ProceduralTools.DragCubeTool.UpdateDragCubes(part);
+            Profiler.EndSample();
+
+            Profiler.EndSample();
         }
 
         public IEnumerator SetOffset(Vector3 offset, float time = 0.3f)
@@ -896,6 +923,66 @@ namespace Keramzit
         {
             var mf = part.FindModelComponent<MeshFilter>("model");
             mf.transform.localPosition = offset;
+        }
+    }
+
+    internal class ColliderPool
+    {
+        private readonly Queue<BoxCollider> pool;
+        private readonly Queue<BoxCollider> cache;
+        private readonly HashSet<BoxCollider> ownedColliders;
+        private readonly MeshFilter parent;
+        private int numCreated = 0;
+
+        internal ColliderPool(MeshFilter parent)
+        {
+            pool = new Queue<BoxCollider>(128);
+            cache = new Queue<BoxCollider>(128);
+            ownedColliders = new HashSet<BoxCollider>(128);
+            this.parent = parent;
+        }
+
+        internal BoxCollider Acquire()
+        {
+            if (cache.TryDequeue(out BoxCollider coll))
+                return coll;
+            if (pool.TryDequeue(out coll))
+            {
+                coll.transform.SetParent(parent.transform);
+                coll.gameObject.SetActive(true);
+                return coll;
+            }
+            GameObject obj = new GameObject($"collider_{parent.name}_{numCreated}");
+            coll = obj.AddComponent<BoxCollider>();
+            ownedColliders.Add(coll);
+            coll.transform.SetParent(parent.transform);
+            numCreated++;
+            return coll;
+        }
+
+        internal void Release(Collider collider)
+        {
+            if (collider is BoxCollider && ownedColliders.Contains(collider))
+                cache.Enqueue(collider as BoxCollider);
+            else
+                collider.gameObject.DestroyGameObject();
+        }
+
+        internal void ReleaseCacheToPool()
+        {
+            while (cache.TryDequeue(out BoxCollider collider))
+            {
+                collider.gameObject.SetActive(false);
+                collider.transform.SetParent(null);
+                pool.Enqueue(collider);
+            }
+        }
+
+        internal void Dispose()
+        {
+            ReleaseCacheToPool();
+            while (pool.TryDequeue(out BoxCollider collider))
+                collider.gameObject.DestroyGameObject();
         }
     }
 }
