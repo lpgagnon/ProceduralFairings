@@ -16,31 +16,25 @@ namespace Keramzit
         public List<Part> payload;
         public HashSet<Part> hash;
 
-        public List<Part> targets;
-
         public Matrix4x4 w2l;
 
         public float ofs, verticalStep, extraRadius;
 
-        public int nestedBases;
-
         public PayloadScan (Part p, float vs, float er)
         {
-            profile = new List<float>();
-            payload = new List<Part>();
-            targets = new List<Part>();
-            hash = new HashSet<Part>();
+            profile = new List<float>(128);
+            payload = new List<Part>(128);
+            hash = new HashSet<Part>(128);
 
-            hash.Add (p);
+            hash.Add(p);
 
             w2l = p.transform.worldToLocalMatrix;
             ofs = 0;
             verticalStep = vs;
             extraRadius = er;
-            nestedBases = 0;
         }
 
-        public void addPart (Part p, Part prevPart)
+        public void AddPart(Part p, Part prevPart)
         {
             if (p is Part && !hash.Contains(p))
             {
@@ -49,31 +43,15 @@ namespace Keramzit
                 if (p.GetComponent<LaunchClamp>() == null &&
                     !(p == prevPart.parent && prevPart.srfAttachNode.attachedPart == p))
                 {
-                    if (p.GetComponent<ProceduralFairingBase>() is ProceduralFairingBase fBase && fBase.Mode == ProceduralFairingBase.BaseMode.Payload)
-                    {
-                        if (p.FindAttachNode("top") is AttachNode node && node.attachedPart == prevPart)
-                        {
-                            //  Reversed base - potential inline fairing target.
-                            if (nestedBases <= 0)
-                            {
-                                targets.Add(p);
-                                return;
-                            }
-                            --nestedBases;
-                        }
-                        else
-                            ++nestedBases;
-                    }
-
                     payload.Add(p);
                 }
             }
         }
 
-        public void addPayloadEdge (Vector3 v0, Vector3 v1)
+        public void AddPayloadEdge (Vector3 v0, Vector3 v1)
         {
-            float r0 = Mathf.Sqrt (v0.x * v0.x + v0.z * v0.z) + extraRadius;
-            float r1 = Mathf.Sqrt (v1.x * v1.x + v1.z * v1.z) + extraRadius;
+            float r0 = Mathf.Sqrt(v0.x * v0.x + v0.z * v0.z) + extraRadius;
+            float r1 = Mathf.Sqrt(v1.x * v1.x + v1.z * v1.z) + extraRadius;
 
             float y0 = (v0.y - ofs) / verticalStep;
             float y1 = (v1.y - ofs) / verticalStep;
@@ -129,7 +107,7 @@ namespace Keramzit
             }
         }
 
-        public void addPayload (Bounds box, Matrix4x4 boxTm)
+        public void AddPayload(Bounds box, Matrix4x4 boxTm)
         {
             Matrix4x4 m = w2l * boxTm;
 
@@ -142,23 +120,23 @@ namespace Keramzit
                 verts [i] = m.MultiplyPoint3x4 (new Vector3 ((i & 1) != 0 ? p1.x : p0.x, (i & 2) != 0 ? p1.y : p0.y, (i & 4) != 0 ? p1.z : p0.z));
             }
 
-            addPayloadEdge (verts [0], verts [1]);
-            addPayloadEdge (verts [2], verts [3]);
-            addPayloadEdge (verts [4], verts [5]);
-            addPayloadEdge (verts [6], verts [7]);
+            AddPayloadEdge (verts [0], verts [1]);
+            AddPayloadEdge (verts [2], verts [3]);
+            AddPayloadEdge (verts [4], verts [5]);
+            AddPayloadEdge (verts [6], verts [7]);
 
-            addPayloadEdge (verts [0], verts [2]);
-            addPayloadEdge (verts [1], verts [3]);
-            addPayloadEdge (verts [4], verts [6]);
-            addPayloadEdge (verts [5], verts [7]);
+            AddPayloadEdge (verts [0], verts [2]);
+            AddPayloadEdge (verts [1], verts [3]);
+            AddPayloadEdge (verts [4], verts [6]);
+            AddPayloadEdge (verts [5], verts [7]);
 
-            addPayloadEdge (verts [0], verts [4]);
-            addPayloadEdge (verts [1], verts [5]);
-            addPayloadEdge (verts [2], verts [6]);
-            addPayloadEdge (verts [3], verts [7]);
+            AddPayloadEdge (verts [0], verts [4]);
+            AddPayloadEdge (verts [1], verts [5]);
+            AddPayloadEdge (verts [2], verts [6]);
+            AddPayloadEdge (verts [3], verts [7]);
         }
 
-        public void addPayload (Collider c)
+        public void AddPayload(Collider c)
         {
             var mc = c as MeshCollider;
             var bc = c as BoxCollider;
@@ -176,19 +154,15 @@ namespace Keramzit
                     var v1 = m.MultiplyPoint3x4 (verts [faces [i + 1]]);
                     var v2 = m.MultiplyPoint3x4 (verts [faces [i + 2]]);
 
-                    addPayloadEdge (v0, v1);
-                    addPayloadEdge (v1, v2);
-                    addPayloadEdge (v2, v0);
+                    AddPayloadEdge (v0, v1);
+                    AddPayloadEdge (v1, v2);
+                    AddPayloadEdge (v2, v0);
                 }
             }
             else if (bc)
-            {
-                addPayload (new Bounds (bc.center, bc.size), bc.transform.localToWorldMatrix);
-            }
+                AddPayload(new Bounds (bc.center, bc.size), bc.transform.localToWorldMatrix);
             else
-            {
-                addPayload (c.bounds, Matrix4x4.identity);
-            }
+                AddPayload(c.bounds, Matrix4x4.identity);
         }
     }
 }
