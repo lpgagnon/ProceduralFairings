@@ -49,80 +49,76 @@ namespace Keramzit
         [KSPField(isPersistant = true)] public Vector3 meshPos = Vector3.zero;
         [KSPField(isPersistant = true)] public Quaternion meshRot = Quaternion.identity;
 
-        [KSPField(guiActiveEditor = true, guiName = "Shape Preset", groupName = PFUtils.PAWGroup, groupDisplayName = PFUtils.PAWName)]
-        [UI_ChooseOption(affectSymCounterparts = UI_Scene.Editor, scene = UI_Scene.Editor)]
-        public string shapePreset;
-
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Base Auto-shape", groupName = PFUtils.PAWGroup)]
-        [UI_Toggle(disabledText = "Off", enabledText = "On")]
-        public bool baseAutoShape = true;
-
-        [KSPField(isPersistant = true, guiName = "Base Start X", guiFormat = "S4", groupName = PFUtils.PAWGroup)]
-        [UI_FloatEdit(sigFigs = 2, minValue = 0.0f, maxValue = 1.0f, incrementLarge = 0.1f, incrementSmall = 0.01f, incrementSlide = 0.01f)]
-        public float baseCurveStartX = 0.5f;
-
-        [KSPField(isPersistant = true, guiName = "Base Start Y", guiFormat = "S4", groupName = PFUtils.PAWGroup)]
-        [UI_FloatEdit(sigFigs = 2, minValue = 0.0f, maxValue = 1.0f, incrementLarge = 0.1f, incrementSmall = 0.01f, incrementSlide = 0.01f)]
-        public float baseCurveStartY = 0.0f;
-
-        [KSPField(isPersistant = true, guiName = "Base End X", guiFormat = "S4", groupName = PFUtils.PAWGroup)]
-        [UI_FloatEdit(sigFigs = 2, minValue = 0.0f, maxValue = 1.0f, incrementLarge = 0.1f, incrementSmall = 0.01f, incrementSlide = 0.01f)]
-        public float baseCurveEndX = 1.0f;
-
-        [KSPField(isPersistant = true, guiName = "Base End Y", guiFormat = "S4", groupName = PFUtils.PAWGroup)]
-        [UI_FloatEdit(sigFigs = 2, minValue = 0.0f, maxValue = 1.0f, incrementLarge = 0.1f, incrementSmall = 0.01f, incrementSlide = 0.01f)]
-        public float baseCurveEndY = 0.5f;
-
-        [KSPField(isPersistant = true, guiName = "Base Cone Segments", groupName = PFUtils.PAWGroup)]
-        [UI_FloatRange(minValue = 1, maxValue = 12, stepIncrement = 1)]
-        public float baseConeSegments = 5;
-
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Nose Auto-shape", groupName = PFUtils.PAWGroup)]
-        [UI_Toggle(disabledText = "Off", enabledText = "On")]
-        public bool noseAutoShape = true;
-
-        [KSPField(isPersistant = true, guiName = "Nose Start X", guiFormat = "S4", groupName = PFUtils.PAWGroup)]
-        [UI_FloatEdit(sigFigs = 2, minValue = 0.0f, maxValue = 1.0f, incrementLarge = 0.1f, incrementSmall = 0.01f, incrementSlide = 0.01f)]
-        public float noseCurveStartX = 0.5f;
-
-        [KSPField(isPersistant = true, guiName = "Nose Start Y", guiFormat = "S4", groupName = PFUtils.PAWGroup)]
-        [UI_FloatEdit(sigFigs = 2, minValue = 0.0f, maxValue = 1.0f, incrementLarge = 0.1f, incrementSmall = 0.01f, incrementSlide = 0.01f)]
-        public float noseCurveStartY = 0.0f;
-
-        [KSPField(isPersistant = true, guiName = "Nose End X", guiFormat = "S4", groupName = PFUtils.PAWGroup)]
-        [UI_FloatEdit(sigFigs = 2, minValue = 0.0f, maxValue = 1.0f, incrementLarge = 0.1f, incrementSmall = 0.01f, incrementSlide = 0.01f)]
-        public float noseCurveEndX = 1.0f;
-
-        [KSPField(isPersistant = true, guiName = "Nose End Y", guiFormat = "S4", groupName = PFUtils.PAWGroup)]
-        [UI_FloatEdit(sigFigs = 2, minValue = 0.0f, maxValue = 1.0f, incrementLarge = 0.1f, incrementSmall = 0.01f, incrementSlide = 0.01f)]
-        public float noseCurveEndY = 0.5f;
-
-        [KSPField(isPersistant = true, guiName = "Nose Cone Segments", groupName = PFUtils.PAWGroup)]
-        [UI_FloatRange(minValue = 1, maxValue = 12, stepIncrement = 1)]
-        public float noseConeSegments = 7;
-
-        [KSPField(isPersistant = true, guiName = "Nose-height Ratio", guiFormat = "S4", groupName = PFUtils.PAWGroup)]
-        [UI_FloatEdit(sigFigs = 2, minValue = 0.1f, maxValue = 5.0f, incrementLarge = 1.0f, incrementSmall = 0.1f, incrementSlide = 0.01f)]
-        public float noseHeightRatio = 2.0f;
-
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Shape", groupName = PFUtils.PAWGroup)]
-        [UI_Toggle(disabledText = "Unlocked", enabledText = "Locked")]
-        public bool shapeLock;
-
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Density", groupName = PFUtils.PAWGroup)]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Density", groupName = PFUtils.PAWGroup, groupDisplayName = PFUtils.PAWName)]
         [UI_FloatRange(minValue = 0.01f, maxValue = 1.0f, stepIncrement = 0.01f)]
         public float density = 0.2f;
-
-        [KSPField] public float decouplerCostMult = 1;              // Mult to costPerTonne when decoupler is enabled
-        [KSPField] public float decouplerCostBase = 0;              // Flat additional cost when decoupler is enabled
-        [KSPField] public float decouplerMassMult = 1;              // Mass multiplier
-        [KSPField] public float decouplerMassBase = 0.0001f;        // Flat additional mass (0.001 = 1kg)
 
         [KSPField(guiActiveEditor = true, guiName = "Mass", groupName = PFUtils.PAWGroup)]
         public string massDisplay;
 
         [KSPField(guiActiveEditor = true, guiName = "Cost", groupName = PFUtils.PAWGroup)]
         public string costDisplay;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Use Preset", groupName = PFUtils.PAWShapeGroup, groupDisplayName = PFUtils.PAWShapeName)]
+        [UI_Toggle(disabledText = "Off", enabledText = "On")]
+        public bool usePreset = true;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Shape Preset", groupName = PFUtils.PAWShapeGroup)]
+        [UI_ChooseOption(affectSymCounterparts = UI_Scene.Editor, scene = UI_Scene.Editor)]
+        public string shapePreset;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Base Start X", guiFormat = "S4", groupName = PFUtils.PAWShapeGroup)]
+        [UI_FloatEdit(sigFigs = 2, minValue = 0.0f, maxValue = 1.0f, incrementLarge = 0.1f, incrementSmall = 0.01f, incrementSlide = 0.01f)]
+        public float baseCurveStartX = 0.5f;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Base Start Y", guiFormat = "S4", groupName = PFUtils.PAWShapeGroup)]
+        [UI_FloatEdit(sigFigs = 2, minValue = 0.0f, maxValue = 1.0f, incrementLarge = 0.1f, incrementSmall = 0.01f, incrementSlide = 0.01f)]
+        public float baseCurveStartY = 0.0f;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Base End X", guiFormat = "S4", groupName = PFUtils.PAWShapeGroup)]
+        [UI_FloatEdit(sigFigs = 2, minValue = 0.0f, maxValue = 1.0f, incrementLarge = 0.1f, incrementSmall = 0.01f, incrementSlide = 0.01f)]
+        public float baseCurveEndX = 1.0f;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Base End Y", guiFormat = "S4", groupName = PFUtils.PAWShapeGroup)]
+        [UI_FloatEdit(sigFigs = 2, minValue = 0.0f, maxValue = 1.0f, incrementLarge = 0.1f, incrementSmall = 0.01f, incrementSlide = 0.01f)]
+        public float baseCurveEndY = 0.5f;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Base Cone Segments", groupName = PFUtils.PAWShapeGroup)]
+        [UI_FloatRange(minValue = 1, maxValue = 12, stepIncrement = 1)]
+        public float baseConeSegments = 5;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Nose Start X", guiFormat = "S4", groupName = PFUtils.PAWShapeGroup)]
+        [UI_FloatEdit(sigFigs = 2, minValue = 0.0f, maxValue = 1.0f, incrementLarge = 0.1f, incrementSmall = 0.01f, incrementSlide = 0.01f)]
+        public float noseCurveStartX = 0.5f;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Nose Start Y", guiFormat = "S4", groupName = PFUtils.PAWShapeGroup)]
+        [UI_FloatEdit(sigFigs = 2, minValue = 0.0f, maxValue = 1.0f, incrementLarge = 0.1f, incrementSmall = 0.01f, incrementSlide = 0.01f)]
+        public float noseCurveStartY = 0.0f;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Nose End X", guiFormat = "S4", groupName = PFUtils.PAWShapeGroup)]
+        [UI_FloatEdit(sigFigs = 2, minValue = 0.0f, maxValue = 1.0f, incrementLarge = 0.1f, incrementSmall = 0.01f, incrementSlide = 0.01f)]
+        public float noseCurveEndX = 1.0f;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Nose End Y", guiFormat = "S4", groupName = PFUtils.PAWShapeGroup)]
+        [UI_FloatEdit(sigFigs = 2, minValue = 0.0f, maxValue = 1.0f, incrementLarge = 0.1f, incrementSmall = 0.01f, incrementSlide = 0.01f)]
+        public float noseCurveEndY = 0.5f;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Nose Cone Segments", groupName = PFUtils.PAWShapeGroup)]
+        [UI_FloatRange(minValue = 1, maxValue = 12, stepIncrement = 1)]
+        public float noseConeSegments = 7;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Nose-Height Ratio", guiFormat = "S4", groupName = PFUtils.PAWShapeGroup)]
+        [UI_FloatEdit(sigFigs = 2, minValue = 0.1f, maxValue = 5.0f, incrementLarge = 1.0f, incrementSmall = 0.1f, incrementSlide = 0.01f)]
+        public float noseHeightRatio = 2.0f;
+
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Shape", groupName = PFUtils.PAWShapeGroup)]
+        [UI_Toggle(disabledText = "Unlocked", enabledText = "Locked")]
+        public bool shapeLock;
+
+        [KSPField] public float decouplerCostMult = 1;              // Mult to costPerTonne when decoupler is enabled
+        [KSPField] public float decouplerCostBase = 0;              // Flat additional cost when decoupler is enabled
+        [KSPField] public float decouplerMassMult = 1;              // Mass multiplier
+        [KSPField] public float decouplerMassBase = 0.0001f;        // Flat additional mass (0.001 = 1kg)
 
         public ModifierChangeWhen GetModuleCostChangeWhen() => ModifierChangeWhen.FIXED;
         public ModifierChangeWhen GetModuleMassChangeWhen() => ModifierChangeWhen.FIXED;
@@ -131,9 +127,10 @@ namespace Keramzit
         private float ApplyDecouplerCostModifier(float baseCost) => DecouplerEnabled ? (baseCost * decouplerCostMult) + decouplerCostBase : baseCost;
         private float ApplyDecouplerMassModifier(float baseMass) => DecouplerEnabled ? (baseMass * decouplerMassMult) + decouplerMassBase : baseMass;
         private bool DecouplerEnabled => part.FindModuleImplementing<ProceduralFairingDecoupler>() is ProceduralFairingDecoupler d && d.fairingStaged;
-        public override string GetInfo() => "Attach to a procedural fairing base to reshape. Right-click it to set it's parameters.";
+        public override string GetInfo() => "Attach to a procedural fairing base to reshape. Right-click it to set its parameters.";
 
         private static readonly Dictionary<string, FairingSideShapePreset> AllPresets = new Dictionary<string, FairingSideShapePreset>();
+
         [KSPEvent(active = true, guiActiveEditor = true, groupName = PFUtils.PAWGroup, guiName = "Toggle Open/Closed")]
         public void ToggleOpenClosed()
         {
@@ -172,7 +169,8 @@ namespace Keramzit
             colliderPool = new ColliderPool(part.FindModelComponent<MeshFilter>("model"));
             if (AllPresets.Count == 0)
                 LoadPresets(AllPresets);
-            shapePreset = AllPresets.Keys.FirstOrDefault() ?? "Invalid";
+            if (!AllPresets.ContainsKey(shapePreset))
+                shapePreset = AllPresets.Keys.FirstOrDefault() ?? "Invalid";
             (Fields[nameof(shapePreset)].uiControlEditor as UI_ChooseOption).options = AllPresets.Keys.ToArray();
             (Fields[nameof(shapePreset)].uiControlEditor as UI_ChooseOption).display = AllPresets.Keys.ToArray();
 
@@ -180,7 +178,7 @@ namespace Keramzit
             if (HighLogic.LoadedSceneIsEditor && part.parent == null)
                 part.OnEditorAttach += OnPartEditorAttach;
             else
-                rebuildMesh();
+                OnPartEditorAttach();
 
             SetUICallbacks();
             SetUIFieldVisibility();
@@ -190,19 +188,19 @@ namespace Keramzit
 
         private void OnPartEditorAttach()
         {
-            rebuildMesh();
+            if (usePreset)
+                ApplySelectedPreset();
+            else
+                rebuildMesh();
         }
 
         void SetUICallbacks()
         {
+            Fields[nameof(usePreset)].uiControlEditor.onFieldChanged += OnUsePresetToggled;
+            Fields[nameof(usePreset)].uiControlEditor.onSymmetryFieldChanged += OnUsePresetToggled;
+
             Fields[nameof(shapePreset)].uiControlEditor.onFieldChanged += OnShapePresetChanged;
             Fields[nameof(shapePreset)].uiControlEditor.onSymmetryFieldChanged += OnShapePresetChanged;
-
-            Fields[nameof(baseAutoShape)].uiControlEditor.onFieldChanged += OnChangeAutoShape;
-            Fields[nameof(noseAutoShape)].uiControlEditor.onFieldChanged += OnChangeAutoShape;
-
-            Fields[nameof(baseAutoShape)].uiControlEditor.onSymmetryFieldChanged += OnChangeAutoShape;
-            Fields[nameof(noseAutoShape)].uiControlEditor.onSymmetryFieldChanged += OnChangeAutoShape;
 
             Fields[nameof(baseCurveStartX)].uiControlEditor.onFieldChanged += OnChangeShapeUI;
             Fields[nameof(baseCurveStartY)].uiControlEditor.onFieldChanged += OnChangeShapeUI;
@@ -241,28 +239,23 @@ namespace Keramzit
             }
         }
 
-        void OnShapePresetChanged(BaseField field, object obj)
-        {
-            if (AllPresets.TryGetValue(shapePreset, out var preset))
-                preset.Apply(this);
-        }
+        void OnShapePresetChanged(BaseField field, object obj) => ApplySelectedPreset();
         void OnChangeDecouplerUI(BaseField field, object obj) => UpdateMassAndCostDisplay();
-        void OnChangeAutoShape(BaseField field, object obj)
+        void OnUsePresetToggled(BaseField field, object obj)
         {
-            if (baseAutoShape)
+            if (usePreset)
+                ApplySelectedPreset();
+            else
             {
                 ResetBaseCurve(true);
                 baseConeSegments = DefaultBaseConeSegments;
-            }
-
-            if (noseAutoShape)
-            {
                 ResetNoseCurve(true);
                 noseConeSegments = DefaultNoseConeSegments;
                 noseHeightRatio = DefaultNoseHeightRatio;
+                rebuildMesh();
             }
+
             SetUIFieldVisibility();
-            OnChangeShapeUI(field, obj);
         }
 
         void OnChangeShapeUI(BaseField bf, object obj)
@@ -288,22 +281,23 @@ namespace Keramzit
 
         void SetUIFieldVisibility()
         {
-            Fields[nameof(shapePreset)].guiActiveEditor = AllPresets.Count > 1;
-            Fields[nameof(baseCurveStartX)].guiActiveEditor  = !baseAutoShape;
-            Fields[nameof(baseCurveStartY)].guiActiveEditor  = !baseAutoShape;
-            Fields[nameof(baseCurveEndX)].guiActiveEditor    = !baseAutoShape;
-            Fields[nameof(baseCurveEndY)].guiActiveEditor    = !baseAutoShape;
-            Fields[nameof(baseConeSegments)].guiActiveEditor = !baseAutoShape;
+            Fields[nameof(shapePreset)].guiActiveEditor = AllPresets.Count > 0 && usePreset;
 
-            Fields[nameof(noseCurveStartX)].guiActiveEditor  = !noseAutoShape;
-            Fields[nameof(noseCurveStartY)].guiActiveEditor  = !noseAutoShape;
-            Fields[nameof(noseCurveEndX)].guiActiveEditor    = !noseAutoShape;
-            Fields[nameof(noseCurveEndY)].guiActiveEditor    = !noseAutoShape;
-            Fields[nameof(noseHeightRatio)].guiActiveEditor  = !noseAutoShape;
-            Fields[nameof(noseConeSegments)].guiActiveEditor = !noseAutoShape;
+            Fields[nameof(baseCurveStartX)].guiActiveEditor = !usePreset;
+            Fields[nameof(baseCurveStartY)].guiActiveEditor = !usePreset;
+            Fields[nameof(baseCurveEndX)].guiActiveEditor = !usePreset;
+            Fields[nameof(baseCurveEndY)].guiActiveEditor = !usePreset;
+            Fields[nameof(baseConeSegments)].guiActiveEditor = !usePreset;
+
+            Fields[nameof(noseCurveStartX)].guiActiveEditor = !usePreset;
+            Fields[nameof(noseCurveStartY)].guiActiveEditor = !usePreset;
+            Fields[nameof(noseCurveEndX)].guiActiveEditor = !usePreset;
+            Fields[nameof(noseCurveEndY)].guiActiveEditor = !usePreset;
+            Fields[nameof(noseConeSegments)].guiActiveEditor = !usePreset;
+            Fields[nameof(noseHeightRatio)].guiActiveEditor = !usePreset;
         }
 
-        private void LoadPresets(Dictionary<string, FairingSideShapePreset> presets)
+        private static void LoadPresets(Dictionary<string, FairingSideShapePreset> presets)
         {
             presets.Clear();
             if (GameDatabase.Instance.GetConfigNode("ProceduralFairings/PF_Settings/ProceduralFairingsSettings") is ConfigNode node)
@@ -316,6 +310,13 @@ namespace Keramzit
                         presets.Add(p.name, p);
                 }
             }
+        }
+
+        private void ApplySelectedPreset()
+        {
+            if (!usePreset) return;
+            if (AllPresets.TryGetValue(shapePreset, out var preset))
+                preset.Apply(this);
         }
 
         private void UpdateNodeSize()
@@ -331,7 +332,7 @@ namespace Keramzit
             int nsym = part.symmetryCounterparts.Count;
             string s = (nsym == 0) ? string.Empty : (nsym == 1) ? " (both)" : $" (all {nsym + 1})";
             float perPartCost = part.partInfo.cost + GetModuleCost(part.partInfo.cost, ModifierStagingSituation.CURRENT);
-            massDisplay = PFUtils.FormatMass(ApplyDecouplerMassModifier(fairingMass) * (nsym + 1)) + s; 
+            massDisplay = PFUtils.FormatMass(ApplyDecouplerMassModifier(fairingMass) * (nsym + 1)) + s;
             costDisplay = $"{perPartCost * (nsym + 1):N0}{s}";
         }
 
@@ -466,14 +467,14 @@ namespace Keramzit
             var mf = part.FindModelComponent<MeshFilter>("model");
             if (!mf)
             {
-                Debug.LogError ("[PF]: No model for side fairing!", part);
+                Debug.LogError("[PF]: No model for side fairing!", part);
                 return;
             }
 
             Mesh m = mf.mesh;
             if (!m)
             {
-                Debug.LogError ("[PF]: No mesh in side fairing model!", part);
+                Debug.LogError("[PF]: No mesh in side fairing model!", part);
                 return;
             }
             Profiler.BeginSample("PF.FairingSide.RebuildMesh");
@@ -487,15 +488,15 @@ namespace Keramzit
             //  Build the fairing shape line.
 
             float tip = maxRad * noseHeightRatio;
-            baseConeShape = new Vector4 (baseCurveStartX, baseCurveStartY, baseCurveEndX, baseCurveEndY);
-            noseConeShape = new Vector4 (noseCurveStartX, noseCurveStartY, noseCurveEndX, noseCurveEndY);
+            baseConeShape = new Vector4(baseCurveStartX, baseCurveStartY, baseCurveEndX, baseCurveEndY);
+            noseConeShape = new Vector4(noseCurveStartX, noseCurveStartY, noseCurveEndX, noseCurveEndY);
             Vector3[] shape = inlineHeight <= 0 ?
-                                ProceduralFairingBase.buildFairingShape (baseRad, maxRad, cylStart, cylEnd, noseHeightRatio, baseConeShape, noseConeShape, (int) baseConeSegments, (int) noseConeSegments, vertMapping, mappingScale.y) :
-                                ProceduralFairingBase.buildInlineFairingShape (baseRad, maxRad, topRad, cylStart, cylEnd, inlineHeight, baseConeShape, (int) baseConeSegments, vertMapping, mappingScale.y);
-            
+                                ProceduralFairingBase.buildFairingShape(baseRad, maxRad, cylStart, cylEnd, noseHeightRatio, baseConeShape, noseConeShape, (int)baseConeSegments, (int)noseConeSegments, vertMapping, mappingScale.y) :
+                                ProceduralFairingBase.buildInlineFairingShape(baseRad, maxRad, topRad, cylStart, cylEnd, inlineHeight, baseConeShape, (int)baseConeSegments, vertMapping, mappingScale.y);
+
             //  Set up parameters.
 
-            var dirs = new Vector3 [numSegs + 1];
+            var dirs = new Vector3[numSegs + 1];
             for (int i = 0; i <= numSegs; ++i)
             {
                 float a = Mathf.PI * 2 * (i - numSegs * 0.5f) / (numSideParts * numSegs);
@@ -546,7 +547,7 @@ namespace Keramzit
                 totalFaces += numRingFaces;
             }
 
-            var p = shape [shape.Length - 1];
+            var p = shape[shape.Length - 1];
             float topY = p.y, topV = p.z;
             Profiler.EndSample();
 
@@ -556,7 +557,7 @@ namespace Keramzit
             double area = 0;
             for (int i = 1; i < shape.Length; ++i)
             {
-                area += (shape [i - 1].x + shape [i].x) * (shape [i].y - shape [i - 1].y);
+                area += (shape[i - 1].x + shape[i].x) * (shape[i].y - shape[i - 1].y);
             }
             area *= Mathf.PI / numSideParts;
 
@@ -576,14 +577,13 @@ namespace Keramzit
 
             //  Build the fairing mesh.
 
-            m.Clear ();
+            m.Clear();
             Profiler.BeginSample("PF.FairingSide.RebuildMesh.BuildNew");
 
-            var verts = new Vector3 [totalVerts];
-            var uv = new Vector2 [totalVerts];
-            var norm = new Vector3 [totalVerts];
-            var tang = new Vector4 [totalVerts];
-
+            var verts = new Vector3[totalVerts];
+            var uv = new Vector2[totalVerts];
+            var norm = new Vector3[totalVerts];
+            var tang = new Vector4[totalVerts];
             if (inlineHeight <= 0)
             {
                 //  Tip vertex.

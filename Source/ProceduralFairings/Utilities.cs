@@ -34,6 +34,8 @@ namespace Keramzit
     {
         public const string PAWName = "ProceduralFairings";
         public const string PAWGroup = "ProceduralFairings";
+        public const string PAWShapeName = "Procedural Fairing Shape";
+        public const string PAWShapeGroup = "ProceduralFairingsShape";
         public static void setFieldRange(BaseField field, float minval, float maxval)
         {
             if (field.uiControlEditor is UI_FloatRange fr)
