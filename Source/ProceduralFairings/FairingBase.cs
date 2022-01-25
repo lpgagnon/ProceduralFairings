@@ -100,7 +100,7 @@ namespace Keramzit
         [KSPField(guiActiveEditor = true, guiName = "Cost", groupName = PFUtils.PAWGroup)]
         public string costDisplay;
 
-        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Decoupler:", groupName = PFUtils.PAWGroup)]
+        [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Decoupler", groupName = PFUtils.PAWGroup)]
         [UI_Toggle(disabledText = "<color=red><b>Disabled</b></color>", enabledText = "Enabled")]
         public bool decouplerEnabled = true;
 
@@ -182,6 +182,15 @@ namespace Keramzit
         public override void OnStart (StartState state)
         {
             Decoupler = part.FindModuleImplementing<ModuleDecouple>();
+            if (Decoupler)
+            {
+                UpdateDecouplerUIVisibility();
+                if (!decouplerEnabled)
+                {
+                    Decoupler.SetStaging(false);
+                    part.UpdateStageability(false, true);
+                }
+            }
 
             if (requestLegacyLoad)
                 LegacyLoad();
@@ -214,7 +223,7 @@ namespace Keramzit
             {
                 GameEvents.onVesselWasModified.Add(OnVesselModified);
             }
-            OnDecouplerEnabledChanged(Fields[nameof(decouplerEnabled)], decouplerEnabled);
+
             lastBaseSize = baseSize;
             lastExtraHt = extraHeight;
             lastTopSize = topSize;
@@ -437,7 +446,17 @@ namespace Keramzit
             UpdateMassAndCostDisplay();
             if (Decoupler)
             {
-                Decoupler.stagingEnabled = decouplerEnabled;
+                UpdateDecouplerUIVisibility();
+                Decoupler.SetStaging(decouplerEnabled);
+                part.UpdateStageability(false, true);
+                MonoUtilities.RefreshPartContextWindow(part);
+            }
+        }
+
+        private void UpdateDecouplerUIVisibility()
+        {
+            if (Decoupler)
+            {
                 Decoupler.Actions["DecoupleAction"].active = decouplerEnabled;
                 Decoupler.Events["Decouple"].active = decouplerEnabled;
                 Decoupler.Events["Decouple"].guiActive = decouplerEnabled;
@@ -446,7 +465,6 @@ namespace Keramzit
                 Decoupler.Events["ToggleStaging"].guiActiveEditor = decouplerEnabled;
                 Fields[nameof(autoDecoupleTopNode)].guiActive = decouplerEnabled && Mode == BaseMode.Adapter;
                 Fields[nameof(autoDecoupleTopNode)].guiActiveEditor = decouplerEnabled && Mode == BaseMode.Adapter;
-                MonoUtilities.RefreshPartContextWindow(part);
             }
         }
 
