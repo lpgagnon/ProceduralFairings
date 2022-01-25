@@ -61,7 +61,7 @@ namespace Keramzit
 
         [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Use Preset", groupName = PFUtils.PAWShapeGroup, groupDisplayName = PFUtils.PAWShapeName)]
         [UI_Toggle(disabledText = "Off", enabledText = "On")]
-        public bool usePreset = true;
+        public bool usePreset = false;
 
         [KSPField(isPersistant = true, guiActiveEditor = true, guiName = "Shape Preset", groupName = PFUtils.PAWShapeGroup)]
         [UI_ChooseOption(affectSymCounterparts = UI_Scene.Editor, scene = UI_Scene.Editor)]
@@ -245,15 +245,6 @@ namespace Keramzit
         {
             if (usePreset)
                 ApplySelectedPreset();
-            else
-            {
-                ResetBaseCurve(true);
-                baseConeSegments = DefaultBaseConeSegments;
-                ResetNoseCurve(true);
-                noseConeSegments = DefaultNoseConeSegments;
-                noseHeightRatio = DefaultNoseHeightRatio;
-                rebuildMesh();
-            }
 
             SetUIFieldVisibility();
         }
