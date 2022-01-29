@@ -159,8 +159,8 @@ namespace Keramzit
             // All other loads should reference the persistent value.
             if (HighLogic.LoadedScene == GameScenes.LOADING)
             {
-                ResetBaseCurve(false);
-                ResetNoseCurve(false);
+                ReadBaseCurveFromVec4(false);
+                ReadNoseCurveFromVec4(false);
             }
         }
 
@@ -169,16 +169,24 @@ namespace Keramzit
             colliderPool = new ColliderPool(part.FindModelComponent<MeshFilter>("model"));
             if (AllPresets.Count == 0)
                 LoadPresets(AllPresets);
-            if (!AllPresets.ContainsKey(shapePreset))
-                shapePreset = AllPresets.Keys.FirstOrDefault() ?? "Invalid";
+
             (Fields[nameof(shapePreset)].uiControlEditor as UI_ChooseOption).options = AllPresets.Keys.ToArray();
             (Fields[nameof(shapePreset)].uiControlEditor as UI_ChooseOption).display = AllPresets.Keys.ToArray();
 
+            if (!AllPresets.ContainsKey(shapePreset))
+                shapePreset = AllPresets.Keys.FirstOrDefault() ?? "Invalid";
+
+            if (HighLogic.LoadedSceneIsEditor && usePreset && !(AllPresets.TryGetValue(shapePreset, out var preset) && preset.IsApplied(this)))
+            {
+                Debug.LogWarning($"[PF]: Incoherent preset value detected; falling back to custom shaping!", part);
+                usePreset = false;
+            }
+
             // If part is pulled from the picker (ie prefab), delay mesh rebuilding.
             if (HighLogic.LoadedSceneIsEditor && part.parent == null)
-                part.OnEditorAttach += OnPartEditorAttach;
+                part.OnEditorAttach += ApplyShapeOnStart;
             else
-                OnPartEditorAttach();
+                ApplyShapeOnStart();
 
             SetUICallbacks();
             SetUIFieldVisibility();
@@ -186,9 +194,9 @@ namespace Keramzit
 
         public void OnDestroy() => colliderPool?.Dispose();
 
-        private void OnPartEditorAttach()
+        private void ApplyShapeOnStart()
         {
-            if (usePreset)
+            if (usePreset && !HighLogic.LoadedSceneIsFlight)
                 ApplySelectedPreset();
             else
                 rebuildMesh();
@@ -254,7 +262,7 @@ namespace Keramzit
             rebuildMesh();
         }
 
-        internal void ResetBaseCurve(bool fromPrefab = false)
+        internal void ReadBaseCurveFromVec4(bool fromPrefab = false)
         {
             baseCurveStartX = fromPrefab ? part.partInfo.partPrefab.FindModuleImplementing<ProceduralFairingSide>().baseConeShape.x : baseConeShape.x;
             baseCurveStartY = fromPrefab ? part.partInfo.partPrefab.FindModuleImplementing<ProceduralFairingSide>().baseConeShape.y : baseConeShape.y;
@@ -262,7 +270,7 @@ namespace Keramzit
             baseCurveEndY = fromPrefab ? part.partInfo.partPrefab.FindModuleImplementing<ProceduralFairingSide>().baseConeShape.w : baseConeShape.w;
         }
 
-        internal void ResetNoseCurve(bool fromPrefab = false)
+        internal void ReadNoseCurveFromVec4(bool fromPrefab = false)
         {
             noseCurveStartX = fromPrefab ? part.partInfo.partPrefab.FindModuleImplementing<ProceduralFairingSide>().noseConeShape.x : noseConeShape.x;
             noseCurveStartY = fromPrefab ? part.partInfo.partPrefab.FindModuleImplementing<ProceduralFairingSide>().noseConeShape.y : noseConeShape.y;

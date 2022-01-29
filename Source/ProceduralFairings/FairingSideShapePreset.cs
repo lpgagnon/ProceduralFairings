@@ -19,9 +19,26 @@ namespace ProceduralFairings
             side.baseConeSegments = baseConeSegments;
             side.noseConeSegments = noseConeSegments;
             side.noseHeightRatio = noseHeightRatio;
-            side.ResetNoseCurve();
-            side.ResetBaseCurve();
+            side.ReadNoseCurveFromVec4();
+            side.ReadBaseCurveFromVec4();
             side.rebuildMesh();
+        }
+
+        public bool IsApplied(ProceduralFairingSide side)
+        {
+            return CompareCurveShape(baseConeShape, side.baseCurveStartX, side.baseCurveStartY, side.baseCurveEndX, side.baseCurveEndY)
+                && CompareCurveShape(noseConeShape, side.noseCurveStartX, side.noseCurveStartY, side.noseCurveEndX, side.noseCurveEndY)
+                && side.baseConeSegments == baseConeSegments
+                && side.noseConeSegments == noseConeSegments
+                && side.noseHeightRatio == noseHeightRatio;
+        }
+
+        private static bool CompareCurveShape(Vector4 shape, float startX, float startY, float endX, float endY)
+        {
+            return Mathf.Approximately(shape.x, startX)
+                && Mathf.Approximately(shape.y, startY)
+                && Mathf.Approximately(shape.z, endX)
+                && Mathf.Approximately(shape.w, endY);
         }
     }
 }
