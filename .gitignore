@@ -21,5 +21,6 @@ Source/Builds/*
 Source/bin
 Source/obj
 *.zip
+*.dll
 
 Source/.idea/.idea.ProceduralFairings/.idea/

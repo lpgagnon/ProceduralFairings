@@ -7,17 +7,16 @@
     "identifier"     	: "ProceduralFairings",
     "abstract"       	: "Fairings that automatically reshape for any attached payload",
     "license"        	: "CC-BY",
-    "author"            : [ "Felger", "NathanKell", "Pap1723" ],
+    "author"            : [ "Felger", "NathanKell", "Pap1723", "KSP-RO" ],
     "release_status" 	: "stable",	
     "depends"       : [
         { "name"    : "ModuleManager" }
     ],
     "resources"     : {
-        "homepage"  : "https://github.com/KSP-RO/ProceduralFairings-ForEverything"
+        "homepage"  : "https://github.com/KSP-RO/ProceduralFairings"
     },
     "suggests"      : [
-        { "name"    : "PFTextures" },
-        { "name"    : "ProceduralFairings-ForEverything" }
+        { "name"    : "PFTextures" }
     ],
     "install" : [
         {

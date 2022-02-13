@@ -1,4 +1,14 @@
 =======================================================
+ProceduralFairings v6.2.0 for KSP 1.10+ (2022-01-24)
+=======================================================
+Major internal improvements to Editor (VAB/SPH) performance
+Split the fairingside shape into a separate PAW group.  Avoids the bizarre interleaving!
+Combined the shape preset vs custom settings into a single toggle, now that there's no need to separately toggle the base and nose elements
+Hard-deprecate using nested, inverted fairing base to signal inline/adapter vs payload fairing mode.  Use a dedicated part with Mode=Adapter
+Bugfix: Broken textures (DXT3 vs DXT5)
+
+
+=======================================================
 ProceduralFairings v6.1.0 for KSP 1.8+ (2021-07-25)
 =======================================================
 Give hollow fairing base & ring parts actually hollow colliders
