@@ -586,6 +586,12 @@ namespace Keramzit
             if (inlineHeight <= 0)
             {
                 //  Tip vertex.
+                // FIXME: This method of generation is incorrect; there should be one copy of the
+                // tip vertex per face such that each one has the correct normal and tangent.
+                // As-is, the normal is suboptimal and the tangent is flat-out incorrect. This code
+                // originally set the tangent to zero (also incorrect per
+                // https://docs.unity3d.com/ScriptReference/Mesh-tangents.html), but that broke TU
+                // and caused the tip to appear entirely black.
 
                 verts [numMainVerts - 1].Set (0, topY + sideThickness, 0);      //  Outside.
                 verts [numMainVerts * 2 - 1].Set (0, topY, 0);                  //  Inside.
@@ -596,8 +602,7 @@ namespace Keramzit
                 norm [numMainVerts - 1] = Vector3.up;
                 norm [numMainVerts * 2 - 1] = -Vector3.up;
 
-                tang [numMainVerts - 1] = Vector3.zero;
-                tang [numMainVerts * 2 - 1] = Vector3.zero;
+                tang [numMainVerts - 1] = tang [numMainVerts * 2 - 1] = new Vector4(0, 0, 1, 1);
             }
 
             //  Main vertices.
