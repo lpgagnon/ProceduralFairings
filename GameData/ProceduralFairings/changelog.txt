@@ -1,4 +1,14 @@
 =======================================================
+ProceduralFairings v6.2.1 for KSP 1.10+ (2022-07-19)
+=======================================================
+Bugfixes:
+Fairing sides now correctly start in preset mode
+The tips of TU-recolorable fairing sides are no longer black
+The Gamma (Recolor) texture now has a correct normal map
+An MM error has been fixed
+
+
+=======================================================
 ProceduralFairings v6.2.0 for KSP 1.10+ (2022-01-24)
 =======================================================
 Major internal improvements to Editor (VAB/SPH) performance
@@ -56,21 +66,21 @@ Dedicated co-routines for some functionality (decouplers, in-Editor change detec
 Better handling for pushing attached parts / AttachNodes when resizing/reshaping
 More consistent attachment node size handling
 Removed dragAreaScale parameter.
-Eliminated the ProceduralFairingAdapter and KzBaseResizer PartModules. All their functionality 
-has merged into the ProceduralFairingBase. If you are a mod author and relied on extending these 
-PartModules, please discuss. It may be best to take the source from PF 1.8.x releases and bring 
+Eliminated the ProceduralFairingAdapter and KzBaseResizer PartModules. All their functionality
+has merged into the ProceduralFairingBase. If you are a mod author and relied on extending these
+PartModules, please discuss. It may be best to take the source from PF 1.8.x releases and bring
 that to your mod.
 
-If after upgrade in the VAB, your Interstage fairings look like tiny payload fairings instead, 
+If after upgrade in the VAB, your Interstage fairings look like tiny payload fairings instead,
 immediately reload the .craft file using the stock (NOT CraftManager) method. Do not re-save it first.
 
-Notice for CraftManager Users: CraftManager does not invoke the Upgrade Pipeline when it loads a craft. 
-Thus, PF's upgrade tools don't have the opportunity to run. You must load [each] .craft file via the 
+Notice for CraftManager Users: CraftManager does not invoke the Upgrade Pipeline when it loads a craft.
+Thus, PF's upgrade tools don't have the opportunity to run. You must load [each] .craft file via the
 stock method once before using CraftManager.
 
-Notice for Linux Users: The upgrade process for the .craft file runs, but the first time it is 
-loaded into the Editor, your fairings look wrong, like the note above. A warning window will pop-up, 
-reminding you to load the .craft file again. It worked, it just appears the un-corrected version 
+Notice for Linux Users: The upgrade process for the .craft file runs, but the first time it is
+loaded into the Editor, your fairings look wrong, like the note above. A warning window will pop-up,
+reminding you to load the .craft file again. It worked, it just appears the un-corrected version
 was cached and read the first time.
 
 
@@ -99,7 +109,7 @@ ProceduralFairings v1.6.2.0 for KSP 1.6+ (2019-10-25)
     • NEW: Interstage Parts. Hollow Truss, Ribbed, Truss, and Base Ring
 		• Thanks to ShadowMage for the Hollow Truss and Hollow Ring assets
 		• Thanks to NecroBones for the Ribbed and Truss assets
-	
+
 =======================================================
 ProceduralFairings v1.6.1.0 for KSP 1.6.1 (2019-04-18)
 =======================================================
@@ -112,7 +122,7 @@ ProceduralFairings v1.6.1.0 for KSP 1.6.1 (2019-04-18)
 		• Full Recoloring for all Parts
 		• Implemented through the stock Part Variant System
 	• Reorganization of Mod Folder (thanks to Electrocutor)
-	
+
 =======================================================
 ProceduralFairings v1.5.0.5 for KSP 1.5.0 (2018-10-18)
 =======================================================
