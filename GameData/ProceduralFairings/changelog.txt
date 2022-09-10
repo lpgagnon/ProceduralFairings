@@ -1,4 +1,11 @@
 =======================================================
+ProceduralFairings v6.3.0 for KSP 1.10+ (2022-09-09)
+=======================================================
+Require KSP Community Fixes
+Update Upgrade script to use KSP Community Fixes 1.22+ ModUpgradePipeline (and add a KSPCommunityFixes dependency in CKAN)
+Allow setting limits for fairing side density tweaking (can set minDensity, maxDensity, and stepDensity to set the min and max values and step size for the editor control)
+
+=======================================================
 ProceduralFairings v6.2.1 for KSP 1.10+ (2022-07-19)
 =======================================================
 Bugfixes:

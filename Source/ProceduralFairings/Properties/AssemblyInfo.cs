@@ -26,10 +26,10 @@ using System.Runtime.InteropServices;
 //    • Revision
 
 [assembly: AssemblyVersion ("6.0.0.0")]
-[assembly: AssemblyFileVersion ("6.2.1.0")]
+[assembly: AssemblyFileVersion ("6.3.0.0")]
 
 //  The KSPAssembly attribute can be used to ensure that the plugin assemblies
 //  are loaded in the correct order.
 //  This attribute is not currently used but it is included here for completeness.
 
-[assembly: KSPAssembly ("ProceduralFairings", 6, 0)]
+[assembly: KSPAssembly ("ProceduralFairings", 6, 3)]
