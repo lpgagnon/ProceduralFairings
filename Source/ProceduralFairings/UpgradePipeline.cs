@@ -11,10 +11,9 @@ namespace ProceduralFairings
     {
         public override string Name { get => "ProceduralFairings 6.0 PartModule Deprecater";  }
         public override string Description { get => "Upgrades pre-6.0 ProceduralFairings parts"; }
-        public override Version EarliestCompatibleVersion { get => new Version(1, 0, 0); }
-        public override Version TargetVersion { get => new Version(1,8,1); }
-        protected override bool CheckMaxVersion(Version v) => true; // Upgrades are ProcFairings-dependent, not KSP version.
-        // protected override TestResult VersionTest(Version v) => true;    // Could also do it this way.
+        public override Version EarliestCompatibleVersion { get => new Version(0, 0, 0); }
+        public override Version TargetVersion { get => new Version(6, 0, 0); }
+
         private bool popup = false;
 
         public override TestResult OnTest(ConfigNode node, LoadContext loadContext, ref string nodeName)
