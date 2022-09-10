@@ -10,7 +10,8 @@
     "author"            : [ "Felger", "NathanKell", "Pap1723", "KSP-RO" ],
     "release_status" 	: "stable",	
     "depends"       : [
-        { "name"    : "ModuleManager" }
+        { "name"    : "ModuleManager" },
+		{ "name"    : "KSPCommunityFixes" },
     ],
     "resources"     : {
         "homepage"  : "https://github.com/KSP-RO/ProceduralFairings"

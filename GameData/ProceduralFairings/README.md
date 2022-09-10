@@ -11,6 +11,10 @@
 
 Extract the contents of the **ProceduralFairings** .zip file and then drop the ProceduralFairings folder into the GameData folder. **Note:** if you are upgrading then make sure that any previous Procedural Fairings installation has been completely removed beforehand.
 
+Dependencies:
+* ModuleManager
+* KSPCommunityFixes
+
 ### Usage
 
 1. Put a fairing base under your payload (all Procedural Fairings parts are placed under the **Payload** tab) and enable the decoupler if necessary.
