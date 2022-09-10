@@ -53,6 +53,11 @@ namespace Keramzit
         [UI_FloatRange(minValue = 0.01f, maxValue = 1.0f, stepIncrement = 0.01f)]
         public float density = 0.2f;
 
+        [KSPField] public float minDensity = 0.01f;
+        [KSPField] public float maxDensity = 1.0f;
+        [KSPField] public float stepDensity = 0.01f;
+
+
         [KSPField(guiActiveEditor = true, guiName = "Mass", groupName = PFUtils.PAWGroup)]
         public string massDisplay;
 
@@ -162,6 +167,8 @@ namespace Keramzit
                 ReadBaseCurveFromVec4(false);
                 ReadNoseCurveFromVec4(false);
             }
+
+            SetDensityField();
         }
 
         public override void OnStart(StartState state)
@@ -190,6 +197,16 @@ namespace Keramzit
 
             SetUICallbacks();
             SetUIFieldVisibility();
+
+            SetDensityField();
+        }
+
+        private void SetDensityField()
+        {
+            var floatRange = Fields[nameof(density)].uiControlEditor as UI_FloatRange;
+            floatRange.minValue = minDensity;
+            floatRange.maxValue = maxDensity;
+            floatRange.stepIncrement = stepDensity;
         }
 
         public void OnDestroy() => colliderPool?.Dispose();
